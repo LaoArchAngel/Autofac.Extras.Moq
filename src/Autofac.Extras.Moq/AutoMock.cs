@@ -201,7 +201,7 @@ namespace Autofac.Extras.Moq
         /// <see langword="false" /> if this is getting run as part of finalization where
         /// managed resources may have already been cleaned up.
         /// </param>
-        private void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
             if (!this._disposed)
             {

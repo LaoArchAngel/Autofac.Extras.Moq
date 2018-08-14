@@ -1,3 +1,4 @@
+using System;
 using Moq;
 using Xunit;
 
@@ -99,6 +100,21 @@ namespace Autofac.Extras.Moq.Test
 
                 Assert.NotNull(serviceA);
                 Assert.False(serviceA is IMocked<IServiceA>);
+            }
+        }
+
+        [Fact]
+        public void ProvideKeyedImplementation()
+        {
+            using (AutoMock mock = AutoMock.GetLoose())
+            {
+                var serviceA = mock.ProvideKeyed<IServiceA, ServiceA>("A");
+                var serviceA2 = mock.ProvideKeyed<IServiceA, ServiceA2>("A2");
+
+                Assert.NotNull(serviceA);
+                Assert.NotNull(serviceA2);
+                Assert.IsType<ServiceA>(serviceA);
+                Assert.IsType<ServiceA2>(serviceA2);
             }
         }
 
@@ -227,6 +243,15 @@ namespace Autofac.Extras.Moq.Test
         // ReSharper disable once ClassNeverInstantiated.Global
         // ReSharper disable once MemberCanBePrivate.Global
         public class ServiceA : IServiceA
+        {
+            public void RunA()
+            {
+            }
+        }
+
+        // ReSharper disable once ClassNeverInstantiated.Global
+        // ReSharper disable once MemberCanBePrivate.Global
+        public class ServiceA2 : IServiceA
         {
             public void RunA()
             {

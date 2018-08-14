@@ -192,7 +192,7 @@ namespace Autofac.Extras.Moq
         /// <typeparam name="TService">The type of service being provided</typeparam>
         /// <typeparam name="TImplementation">The implementation of the service</typeparam>
         /// <typeparam name="TKey">The type of the key to use to determine which implementation to use for the given type.</typeparam>
-        /// <returns>The implementation of the service at the given key.</returns>
+        /// <returns>The isntance of the implementation of the service at the given key.</returns>
         public TService ProvideKeyed<TService, TImplementation, TKey>(TKey key, params Parameter[] parameters)
         {
             this.Container.ComponentRegistry.Register(
@@ -203,6 +203,26 @@ namespace Autofac.Extras.Moq
                     .CreateRegistration());
 
             return this.Container.ResolveKeyed<TService>(key, parameters);
+        }
+
+        /// <summary>
+        /// Resolve the specified type in the container (refister if needed) with the given key.
+        /// </summary>
+        /// <param name="key">The key value for the instance of the service type we're resolving.</param>
+        /// <param name="instance">The instance to provide.</param>
+        /// <typeparam name="TService">The type of service being provided</typeparam>
+        /// <typeparam name="TKey">The type of the key to use to determine which implementation to use for the given type.</typeparam>
+        /// <returns>The isntance of the implementation of the service at the given key.</returns>
+        public TService ProvideKeyed<TService, TKey>(TKey key, TService instance)
+        {
+            this.Container.ComponentRegistry.Register(
+                RegistrationBuilder.ForDelegate((c, p) => instance)
+                    .As<TService>()
+                    .Keyed<TKey>(key)
+                    .InstancePerLifetimeScope()
+                    .CreateRegistration());
+
+            return this.Container.ResolveKeyed<TService>(key);
         }
 
         private T Create<T>(bool isMock, params Parameter[] parameters)

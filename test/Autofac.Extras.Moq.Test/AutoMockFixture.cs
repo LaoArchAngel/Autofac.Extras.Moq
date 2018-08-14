@@ -104,21 +104,6 @@ namespace Autofac.Extras.Moq.Test
         }
 
         [Fact]
-        public void ProvideKeyedImplementation()
-        {
-            using (AutoMock mock = AutoMock.GetLoose())
-            {
-                var serviceA = mock.ProvideKeyed<IServiceA, ServiceA>("A");
-                var serviceA2 = mock.ProvideKeyed<IServiceA, ServiceA2>("A2");
-
-                Assert.NotNull(serviceA);
-                Assert.NotNull(serviceA2);
-                Assert.IsType<ServiceA>(serviceA);
-                Assert.IsType<ServiceA2>(serviceA2);
-            }
-        }
-
-        [Fact]
         public void ProvideInstance()
         {
             using (var mock = AutoMock.GetLoose())
@@ -131,6 +116,21 @@ namespace Autofac.Extras.Moq.Test
                 component.RunAll();
 
                 mockA.VerifyAll();
+            }
+        }
+
+        [Fact]
+        public void ProvideKeyedImplementation()
+        {
+            using (AutoMock mock = AutoMock.GetLoose())
+            {
+                var serviceA = mock.ProvideKeyed<IServiceA, ServiceA>("A");
+                var serviceA2 = mock.ProvideKeyed<IServiceA, ServiceA2>("A2");
+
+                Assert.NotNull(serviceA);
+                Assert.NotNull(serviceA2);
+                Assert.IsType<ServiceA>(serviceA);
+                Assert.IsType<ServiceA2>(serviceA2);
             }
         }
 

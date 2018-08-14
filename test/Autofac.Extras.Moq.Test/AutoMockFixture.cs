@@ -1,3 +1,5 @@
+using System;
+using Autofac.Features.Indexed;
 using Moq;
 using Xunit;
 
@@ -119,6 +121,44 @@ namespace Autofac.Extras.Moq.Test
         }
 
         [Fact]
+        public void ProvideKeyedImplementation()
+        {
+            using (AutoMock mock = AutoMock.GetLoose())
+            {
+                var serviceA = mock.ProvideKeyed<IServiceA, ServiceA>("A");
+                var serviceA2 = mock.ProvideKeyed<IServiceA, ServiceA2>("A2");
+
+                Assert.NotNull(serviceA);
+                Assert.NotNull(serviceA2);
+                Assert.IsType<ServiceA>(serviceA);
+                Assert.IsType<ServiceA2>(serviceA2);
+            }
+        }
+
+        [Fact]
+        public void ProvideKeyedInstance()
+        {
+            using (AutoMock mock = AutoMock.GetLoose())
+            {
+                var mockA = new Mock<IServiceA>();
+                mockA.Setup(a => a.RunA());
+                mock.ProvideKeyed("A", mockA.Object);
+
+                var mockA2 = new Mock<IServiceA>();
+                mockA2.Setup(a => a.RunA());
+                mock.ProvideKeyed("A2", mockA2.Object);
+
+                var component = mock.Create<TestComponentRequiringIIndex>();
+                component.RunAll();
+
+                mockA.VerifyAll();
+                mockA2.VerifyAll();
+
+
+            }
+        }
+
+        [Fact]
         public void StrictWorksWithAllSetupationsMet()
         {
             using (var strict = AutoMock.GetStrict())
@@ -235,6 +275,15 @@ namespace Autofac.Extras.Moq.Test
 
         // ReSharper disable once ClassNeverInstantiated.Global
         // ReSharper disable once MemberCanBePrivate.Global
+        public class ServiceA2 : IServiceA
+        {
+            public void RunA()
+            {
+            }
+        }
+
+        // ReSharper disable once ClassNeverInstantiated.Global
+        // ReSharper disable once MemberCanBePrivate.Global
         public sealed class TestComponent
         {
             private readonly IServiceA _serviceA;
@@ -276,6 +325,24 @@ namespace Autofac.Extras.Moq.Test
             }
 
             public ClassA InstanceOfClassA { get; }
+        }
+
+        public sealed class TestComponentRequiringIIndex
+        {
+            private readonly IServiceA _a;
+            private readonly IServiceA _a2;
+
+            public TestComponentRequiringIIndex(IIndex<object, IServiceA> keyedServices)
+            {
+                _a = keyedServices["A"];
+                _a2 = keyedServices["A2"];
+            }
+
+            public void RunAll()
+            {
+                this._a.RunA();
+                this._a2.RunA();
+            }
         }
     }
 }

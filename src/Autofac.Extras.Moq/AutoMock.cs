@@ -184,6 +184,43 @@ namespace Autofac.Extras.Moq
             return this.Container.Resolve<TService>();
         }
 
+        /// <summary>
+        /// Resolve the specified type in the container (refister if needed) with the given key.
+        /// </summary>
+        /// <param name="key">The key value for the instance of the service type we're resolving.</param>
+        /// <param name="parameters">Optional parameters used to instantiate the service</param>
+        /// <typeparam name="TService">The type of service being provided</typeparam>
+        /// <typeparam name="TImplementation">The implementation of the service</typeparam>
+        /// <returns>The isntance of the implementation of the service at the given key.</returns>
+        public TService ProvideKeyed<TService, TImplementation>(object key, params Parameter[] parameters)
+        {
+            this.Container.ComponentRegistry.Register(
+                RegistrationBuilder.ForType<TImplementation>()
+                    .Keyed<TService>(key)
+                    .InstancePerLifetimeScope()
+                    .CreateRegistration());
+
+            return this.Container.ResolveKeyed<TService>(key, parameters);
+        }
+
+        /// <summary>
+        /// Resolve the specified type in the container (refister if needed) with the given key.
+        /// </summary>
+        /// <param name="key">The key value for the instance of the service type we're resolving.</param>
+        /// <param name="instance">The instance to provide.</param>
+        /// <typeparam name="TService">The type of service being provided</typeparam>
+        /// <returns>The isntance of the implementation of the service at the given key.</returns>
+        public TService ProvideKeyed<TService>(object key, TService instance)
+        {
+            this.Container.ComponentRegistry.Register(
+                RegistrationBuilder.ForDelegate((c, p) => instance)
+                    .Keyed<TService>(key)
+                    .InstancePerLifetimeScope()
+                    .CreateRegistration());
+
+            return this.Container.ResolveKeyed<TService>(key);
+        }
+
         private T Create<T>(bool isMock, params Parameter[] parameters)
         {
             if (!isMock && !_createdServiceTypes.Contains(typeof(T)))
@@ -201,7 +238,7 @@ namespace Autofac.Extras.Moq
         /// <see langword="false" /> if this is getting run as part of finalization where
         /// managed resources may have already been cleaned up.
         /// </param>
-        private void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
             if (!this._disposed)
             {

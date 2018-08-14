@@ -1,4 +1,5 @@
 using System;
+using Autofac.Features.Indexed;
 using Moq;
 using Xunit;
 
@@ -131,6 +132,29 @@ namespace Autofac.Extras.Moq.Test
                 Assert.NotNull(serviceA2);
                 Assert.IsType<ServiceA>(serviceA);
                 Assert.IsType<ServiceA2>(serviceA2);
+            }
+        }
+
+        [Fact]
+        public void ProvideKeyedInstance()
+        {
+            using (AutoMock mock = AutoMock.GetLoose())
+            {
+                var mockA = new Mock<IServiceA>();
+                mockA.Setup(a => a.RunA());
+                mock.ProvideKeyed("A", mockA.Object);
+
+                var mockA2 = new Mock<IServiceA>();
+                mockA2.Setup(a => a.RunA());
+                mock.ProvideKeyed("A2", mockA2.Object);
+
+                var component = mock.Create<TestComponentRequiringIIndex>();
+                component.RunAll();
+
+                mockA.VerifyAll();
+                mockA2.VerifyAll();
+
+
             }
         }
 
@@ -301,6 +325,24 @@ namespace Autofac.Extras.Moq.Test
             }
 
             public ClassA InstanceOfClassA { get; }
+        }
+
+        public sealed class TestComponentRequiringIIndex
+        {
+            private readonly IServiceA _a;
+            private readonly IServiceA _a2;
+
+            public TestComponentRequiringIIndex(IIndex<object, IServiceA> keyedServices)
+            {
+                _a = keyedServices["A"];
+                _a2 = keyedServices["A2"];
+            }
+
+            public void RunAll()
+            {
+                this._a.RunA();
+                this._a2.RunA();
+            }
         }
     }
 }
